@@ -3,15 +3,18 @@ package com.austincv.hadoopcv;
 
 import java.io.IOException;
 
+import com.austincv.hadoopcv.ImageFileImputFormat;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapred.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
@@ -19,10 +22,17 @@ import org.apache.hadoop.util.ToolRunner;
 
 public class ReadImage extends Configuration implements Tool {
 
-	public static class ReadImageMapper extends Mapper<LongWritable, Text, IntWritable, IntWritable> {
+	public static class ReadImageMapper extends Mapper<NullWritable, BytesWritable, Text, IntWritable> {
 
-		public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException{
+		public void map(NullWritable key, BytesWritable value, Context context) throws IOException, InterruptedException{
 
+			int size = value.getLength();
+			String name = ((FileSplit) context.getInputSplit()).getPath().getName();
+
+			Text fileName = new Text(name);
+			IntWritable fileSize = new IntWritable(size);
+			
+			context.write(fileName, fileSize);
 		}
 	
 	}
@@ -45,7 +55,7 @@ public class ReadImage extends Configuration implements Tool {
 		readImageJob.setJarByClass(ReadImage.class);
 		readImageJob.setMapperClass(ReadImageMapper.class);
 
-		readImageJob.setInputFormatClass(TextInputFormat.class);
+		readImageJob.setInputFormatClass(ImageFileImputFormat.class);
 		readImageJob.setMapOutputKeyClass(IntWritable.class);
 		readImageJob.setMapOutputValueClass(IntWritable.class);
 		
