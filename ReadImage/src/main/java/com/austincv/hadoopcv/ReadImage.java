@@ -19,6 +19,9 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
 
 public class ReadImage extends Configuration implements Tool {
 
@@ -30,6 +33,10 @@ public class ReadImage extends Configuration implements Tool {
 			int size = value.getLength();
 			String name = ((FileSplit) context.getInputSplit()).getPath().getName();
 
+			System.loadLibrary( Core.NATIVE_LIBRARY_NAME );
+			Mat mat = Mat.eye( 3, 3, CvType.CV_8UC1 );
+			System.out.println( "mat = " + mat.dump() );
+		      
 			Text fileName = new Text(name);
 			IntWritable fileSize = new IntWritable(size);
 			
