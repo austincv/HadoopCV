@@ -13,7 +13,7 @@ import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapred.FileSplit;
+import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
@@ -26,6 +26,7 @@ public class ReadImage extends Configuration implements Tool {
 
 		public void map(NullWritable key, BytesWritable value, Context context) throws IOException, InterruptedException{
 
+			//read the file name and file size
 			int size = value.getLength();
 			String name = ((FileSplit) context.getInputSplit()).getPath().getName();
 
@@ -56,7 +57,7 @@ public class ReadImage extends Configuration implements Tool {
 		readImageJob.setMapperClass(ReadImageMapper.class);
 
 		readImageJob.setInputFormatClass(ImageFileImputFormat.class);
-		readImageJob.setMapOutputKeyClass(IntWritable.class);
+		readImageJob.setMapOutputKeyClass(Text.class);
 		readImageJob.setMapOutputValueClass(IntWritable.class);
 		
 		FileInputFormat.addInputPath(readImageJob, new Path(args[0]));
