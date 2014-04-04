@@ -25,22 +25,40 @@ public class ProcessVideo extends Configuration implements Tool {
 	
 		public void map(Text fileName, Text filePath, Context context) throws IOException, InterruptedException{
 
-			
+			//we create a file system object for interacting with the HDFS
 			FileSystem fs = FileSystem.get(context.getConfiguration());
 			
-			//TODO: enclose this in try catch block
+			/*
+			 * TODO: enclose this in try catch block
+			 * We need to catch errors that might happen
+			 * if the local file system is full or in other such cases 
+			 */
+			//copy the video file to the working directory of the map task
 			fs.copyToLocalFile(new Path(filePath.toString()),new Path(fileName.toString()));
-			//TODO: get the path of the code from context property - make it a command line arg
+			
+			/*
+			 * TODO: get the path of the code from context property - make it a command line arg
+			 * An even better method would be to use the distributed cache for loading the 
+			 * python code in which case we don't need to load the code to HDFS first
+			 */
+			//copy code from the predefined location to the local dir for execution
 			fs.copyToLocalFile(new Path("/user/austin/code/code.py"),new Path("code.py"));
 			
+			//build a process using the python code and run it
+			//the python code takes in one parameter - the fileName
 			ProcessBuilder pb = new ProcessBuilder("python","code.py",fileName.toString());
-			Process p = pb.start();
+			Process p = pb.start();//start the process
 			
-			//TODO: figure out how to process the output of python code
+			/*
+			 * TODO: figure out how to process the output of python code
+			 * The current implementation just reads the first line from the output
+			 * of the python code - need to write a simple loop to read the output
+			 */
+			//read output from the process
 			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			Text fps = new Text(in.readLine().toString());
+			Text opencvResult = new Text(in.readLine().toString());
 			
-			context.write(fileName,fps);
+			context.write(fileName,opencvResult);
 		}
 	
 	}
@@ -59,7 +77,10 @@ public class ProcessVideo extends Configuration implements Tool {
 	@Override
 	public int run(String[] args) throws Exception {
 		// Auto-generated method stub
-		//TODO: use the newer api to avoid depricated warnings
+		/*
+		 * TODO: use the newer API to avoid deprecated warnings
+		 * Refer hints given at run time for fixing this
+		 */
 		Job readImageJob = new Job(getConf(),"Video analysis job");
 		readImageJob.setJarByClass(ProcessVideo.class);
 		readImageJob.setMapperClass(ProcessVideoMapper.class);
